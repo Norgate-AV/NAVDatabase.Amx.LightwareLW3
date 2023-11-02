@@ -84,6 +84,22 @@ constant integer MAX_LEVELS = 3
 constant integer MAX_OUTPUTS = 4
 constant integer MAX_INPUTS = 4
 
+constant char PREFIX_NODE[] = 'n-'
+constant char PREFIX_NODE_ERROR[] = 'nE'
+constant char PREFIX_NODE_MANUAL[] = 'nm'
+constant char PREFIX_PROPERTY_READ_ONLY[] = 'pr'
+constant char PREFIX_PROPERTY_READ_WRITE[] = 'pw'
+constant char PREFIX_PROPERTY_ERROR[] = 'pE'
+constant char PREFIX_PROPERTY_MANUAL[] = 'pm'
+constant char PREFIX_METHOD[] = 'm-'
+constant char PREFIX_METHOD_RESPONSE_SUCCESS[] = 'mO'
+constant char PREFIX_METHOD_RESPONSE_FAILURE[] = 'mF'
+constant char PREFIX_METHOD_ERROR[] = 'mE'
+constant char PREFIX_METHOD_MANUAL[] = 'mm'
+constant char PREFIX_SUBSCRIPTION_OPEN_RESPONSE[] = 'o-'
+constant char PREFIX_SUBSCRIPTION_CLOSE_RESPONSE[] = 'c-'
+constant char PREFIX_SUBSCRIPTION_CHANGE_EVENT_MESSAGE[] = 'CHG'
+
 
 (***********************************************************)
 (*              DATA TYPE DEFINITIONS GO BELOW             *)
@@ -264,9 +280,14 @@ define_function MaintainIpConnection() {
 define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
     stack_var char data[NAV_MAX_BUFFER]
     stack_var char delimiter[NAV_MAX_CHARS]
-    stack_var char type[NAV_MAX_CHARS]
+
+    stack_var char prefix[NAV_MAX_CHARS]
     stack_var char path[NAV_MAX_CHARS]
     stack_var char property[NAV_MAX_CHARS]
+
+    stack_var char errorCode[NAV_MAX_CHARS]
+    stack_var char errorMessage[NAV_MAX_CHARS]
+
     stack_var char value[NAV_MAX_CHARS]
     stack_var char node[20][NAV_MAX_CHARS]
     stack_var integer nodeCount
@@ -278,10 +299,35 @@ define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
 
     data = NAVStripRight(data, length_array(delimiter))
 
-    type = NAVStripRight(remove_string(data, ' ', 1), 1)
-    path = NAVStripRight(remove_string(data, '.', 1), 1)
-    property = NAVStripRight(remove_string(data, '=', 1), 1)
-    value = data
+    prefix = NAVStripRight(remove_string(data, ' ', 1), 1)
+
+    switch (prefix) {
+        case PREFIX_NODE_ERROR:
+        case PREFIX_PROPERTY_ERROR:
+        case PREFIX_METHOD_ERROR:
+        case PREFIX_METHOD_RESPONSE_FAILURE: {
+            path = NAVStripRight(remove_string(data, ':', 1), 1)
+            property = NAVStripRight(remove_string(data, ' ', 1), 1)
+            errorCode = NAVStripRight(remove_string(data, ':', 1), 1)
+            errorMessage = data
+
+            NAVErrorLog(NAV_LOG_LEVEL_ERROR, "'mLightwareLW3: Error ', errorCode, ' ', errorMessage")
+            return
+        }
+
+        case PREFIX_PROPERTY_READ_ONLY:
+        case PREFIX_PROPERTY_READ_WRITE:
+        case PREFIX_SUBSCRIPTION_CHANGE_EVENT_MESSAGE: {
+            path = NAVStripRight(remove_string(data, '.', 1), 1)
+            property = NAVStripRight(remove_string(data, '=', 1), 1)
+            value = data
+        }
+
+        default: {
+            // Ignore all other messages
+            return
+        }
+    }
 
     nodeCount = NAVSplitString(path, '/', node)
 
