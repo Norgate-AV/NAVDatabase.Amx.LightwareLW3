@@ -345,7 +345,7 @@ define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
             inputSignalDetected[inputIndex] = NAVStringToBoolean(value)
             NAVErrorLog(NAV_LOG_LEVEL_DEBUG, "'mLightwareLW3: Video Input ', itoa(inputIndex), ' SignalPresent: ', value")
 
-            send_string vdvObject, "'INPUT_SIGNAL_DETECTED-', itoa(inputIndex), ',', NAVBooleanToString(inputSignalDetected[inputIndex])"
+            send_string vdvObject, "'INPUT_SIGNAL_DETECTED-', itoa(inputIndex), ',', NAVBooleanToString(type_cast(inputSignalDetected[inputIndex]))"
         }
         case 'ConnectedSource': {
             stack_var integer outputIndex
