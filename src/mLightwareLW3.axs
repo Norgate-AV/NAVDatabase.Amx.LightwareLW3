@@ -53,7 +53,7 @@ DEFINE_DEVICE
 (***********************************************************)
 DEFINE_CONSTANT
 
-constant char DELIMITER[] = "{ NAV_CR, NAV_LF }"
+constant char DELIMITER[] = "{ {NAV_CR}, {NAV_LF} }"
 
 constant integer IP_PORT = 6107
 
