@@ -147,7 +147,7 @@ DEFINE_MUTUALLY_EXCLUSIVE
 define_function SendString(char payload[]) {
     payload = "payload, NAV_CR, NAV_LF"
 
-    NAVLog(NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_STRING_TO, dvPort, payload))
+    NAVErrorLog(NAV_LOG_LEVEL_DEBUG, NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_STRING_TO, dvPort, payload))
 
     send_string dvPort, "payload"
     wait 1 module.CommandBusy = false
@@ -295,7 +295,7 @@ define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
     data = args.Data
     delimiter = args.Delimiter
 
-    NAVLog(NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_PARSING_STRING_FROM, dvPort, data))
+    NAVErrorLog(NAV_LOG_LEVEL_DEBUG, NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_PARSING_STRING_FROM, dvPort, data))
 
     data = NAVStripRight(data, length_array(delimiter))
 
@@ -343,7 +343,7 @@ define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
             inputIndex = atoi(NAVStripLeft(node[nodeCount], 1))
 
             inputSignalDetected[inputIndex] = NAVStringToBoolean(value)
-            NAVLog("'mLightwareLW3: Video Input ', itoa(inputIndex), ' SignalPresent: ', value")
+            NAVErrorLog(NAV_LOG_LEVEL_DEBUG, "'mLightwareLW3: Video Input ', itoa(inputIndex), ' SignalPresent: ', value")
 
             send_string vdvObject, "'INPUT_SIGNAL_DETECTED-', itoa(inputIndex), ',', NAVBooleanToString(inputSignalDetected[inputIndex])"
         }
@@ -353,7 +353,7 @@ define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
             outputIndex = atoi(NAVStripLeft(node[nodeCount], 1))
 
             outputActual[NAV_SWITCH_LEVEL_VID][outputIndex] = atoi(NAVStripLeft(value, 1))
-            NAVLog("'mLightwareLW3: Video Output ', itoa(outputIndex), ' ConnectedSource: ', itoa(outputActual[NAV_SWITCH_LEVEL_VID][outputIndex])")
+            NAVErrorLog(NAV_LOG_LEVEL_DEBUG, "'mLightwareLW3: Video Output ', itoa(outputIndex), ' ConnectedSource: ', itoa(outputActual[NAV_SWITCH_LEVEL_VID][outputIndex])")
         }
         case 'SerialNumber': {
             if (module.Device.IsInitialized) {
@@ -468,7 +468,7 @@ data_event[dvPort] {
     string: {
         CommunicationTimeOut(30)
 
-        NAVLog(NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_STRING_FROM, data.device, data.text))
+        NAVErrorLog(NAV_LOG_LEVEL_DEBUG, NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_STRING_FROM, data.device, data.text))
 
         select {
             active (1): {
