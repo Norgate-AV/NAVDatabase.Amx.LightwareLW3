@@ -460,7 +460,7 @@ timeline_event[TL_NAV_FEEDBACK] {
     [vdvObject, DEVICE_COMMUNICATING] = (module.Device.IsCommunicating)
     [vdvObject, DATA_INITIALIZED] = (module.Device.IsInitialized)
 
-    if (true) {
+    {
         stack_var integer x
 
         for (x = 1; x <= MAX_INPUTS; x++) {
