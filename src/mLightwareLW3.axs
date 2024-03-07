@@ -114,7 +114,10 @@ DEFINE_MUTUALLY_EXCLUSIVE
 define_function SendString(char payload[]) {
     payload = "payload, NAV_CR, NAV_LF"
 
-    NAVErrorLog(NAV_LOG_LEVEL_DEBUG, NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_STRING_TO, dvPort, payload))
+    NAVErrorLog(NAV_LOG_LEVEL_DEBUG,
+                NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_STRING_TO,
+                                            dvPort,
+                                            payload))
 
     send_string dvPort, "payload"
     wait 1 module.CommandBusy = false
@@ -186,7 +189,10 @@ define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
     data = args.Data
     delimiter = args.Delimiter
 
-    NAVErrorLog(NAV_LOG_LEVEL_DEBUG, NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_PARSING_STRING_FROM, dvPort, data))
+    NAVErrorLog(NAV_LOG_LEVEL_DEBUG,
+                NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_PARSING_STRING_FROM,
+                                            dvPort,
+                                            data))
 
     data = NAVStripRight(data, length_array(delimiter))
 
@@ -244,7 +250,8 @@ define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
             outputIndex = atoi(NAVStripLeft(node[nodeCount], 1))
 
             outputActual[NAV_SWITCH_LEVEL_VID][outputIndex] = atoi(NAVStripLeft(value, 1))
-            NAVErrorLog(NAV_LOG_LEVEL_DEBUG, "'mLightwareLW3: Video Output ', itoa(outputIndex), ' ConnectedSource: ', itoa(outputActual[NAV_SWITCH_LEVEL_VID][outputIndex])")
+            NAVErrorLog(NAV_LOG_LEVEL_DEBUG,
+                        "'mLightwareLW3: Video Output ', itoa(outputIndex), ' ConnectedSource: ', itoa(outputActual[NAV_SWITCH_LEVEL_VID][outputIndex])")
         }
         case 'SerialNumber': {
             if (module.Device.IsInitialized) {
@@ -363,7 +370,10 @@ data_event[dvPort] {
     string: {
         CommunicationTimeOut(30)
 
-        NAVErrorLog(NAV_LOG_LEVEL_DEBUG, NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_STRING_FROM, data.device, data.text))
+        NAVErrorLog(NAV_LOG_LEVEL_DEBUG,
+                    NAVFormatStandardLogMessage(NAV_STANDARD_LOG_MESSAGE_TYPE_STRING_FROM,
+                                                data.device,
+                                                data.text))
 
         select {
             active (1): {
