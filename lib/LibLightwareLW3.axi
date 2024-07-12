@@ -57,7 +57,9 @@ constant char COMMAND_TYPE[][NAV_MAX_CHARS]     =   {
                                                     }
 
 constant char SUBSCRIPTION_PATH_VIDEO[] = '/V1/MEDIA/VIDEO/*'
+constant char SUBSCRIPTION_PATH_AUDIO[] = '/V1/MEDIA/AUDIO/*'
 constant char SUBSCRIPTION_PATH_VIDEO_CROSSPOINT[] = '/V1/MEDIA/VIDEO/XP/*'
+constant char SUBSCRIPTION_PATH_AUDIO_CROSSPOINT[] = '/V1/MEDIA/AUDIO/XP/*'
 
 constant char PREFIX_NODE[] = 'n-'
 constant char PREFIX_NODE_ERROR[] = 'nE'

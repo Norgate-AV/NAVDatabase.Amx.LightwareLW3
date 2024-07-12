@@ -94,6 +94,8 @@ volatile integer inputSignalDetected[MAX_INPUTS] = {
     false
 }
 
+volatile integer volumePercent
+
 
 (***********************************************************)
 (*               LATCHING DEFINITIONS GO BELOW             *)
@@ -253,6 +255,10 @@ define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
             NAVErrorLog(NAV_LOG_LEVEL_DEBUG,
                         "'mLightwareLW3: Video Output ', itoa(outputIndex), ' ConnectedSource: ', itoa(outputActual[NAV_SWITCH_LEVEL_VID][outputIndex])")
         }
+        case 'VolumePercent': {
+            volumePercent = atoi(NAVStripRight(remove_string(value, '.', 1), 1))
+            send_level vdvObject, VOL_LVL, volumePercent * 255 / 100
+        }
         case 'SerialNumber': {
             if (module.Device.IsInitialized) {
                 return
@@ -268,7 +274,8 @@ define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
 define_function Init() {
     SendString(BuildSubscriptionCommand(SUBSCRIPTION_PATH_VIDEO))
     SendString(BuildSubscriptionCommand(SUBSCRIPTION_PATH_VIDEO_CROSSPOINT))
-    SendString(BuildSubscriptionCommand(''))
+    SendString(BuildSubscriptionCommand(SUBSCRIPTION_PATH_AUDIO))
+    SendString(BuildSubscriptionCommand(SUBSCRIPTION_PATH_AUDIO_CROSSPOINT))
 
     SendString(BuildGetConnectedVideoSourceCommand(1))
     SendString(BuildGetConnectedVideoSourceCommand(2))
@@ -416,7 +423,7 @@ data_event[vdvObject] {
                         stack_var integer value
 
                         value = atoi(message.Parameter[2])
-                        SendString(BuildVolumePercentCommand(value, 2))
+                        SendString(BuildVolumePercentCommand(value, 3))
 
                         send_level vdvObject, VOL_LVL, value * 255 / 100
                     }
@@ -429,7 +436,7 @@ data_event[vdvObject] {
 
                         percentage = value * 100 / 255
 
-                        SendString(BuildVolumePercentCommand(percentage, 2))
+                        SendString(BuildVolumePercentCommand(percentage, 3))
                     }
                 }
             }
