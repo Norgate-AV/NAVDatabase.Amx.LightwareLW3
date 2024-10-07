@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.0](https://github.com/Norgate-AV/NAVDatabase.Amx.LightwareLW3/compare/v1.0.0...v1.1.0) (2024-10-07)
+
+### 🌟 Features
+
+-   add volume feedback support ([d2cd623](https://github.com/Norgate-AV/NAVDatabase.Amx.LightwareLW3/commit/d2cd6230c42b60305dfc89282aa15e3a76decefe))
+
+### 🐛 Bug Fixes
+
+-   dont error and exit early if parsed node count is zero ([ce277ab](https://github.com/Norgate-AV/NAVDatabase.Amx.LightwareLW3/commit/ce277ab47770fd8d14fa4fa1aa2b9458cdb90e45))
+-   update release scripts ([9ea646e](https://github.com/Norgate-AV/NAVDatabase.Amx.LightwareLW3/commit/9ea646efe2efcc15fd525c76c250c4b8a0a883e0))
+
 ## 1.0.0 (2024-03-07)
 
 ### 🌟 Features
