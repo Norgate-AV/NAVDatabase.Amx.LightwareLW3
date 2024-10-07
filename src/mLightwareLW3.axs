@@ -230,14 +230,14 @@ define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
 
     nodeCount = NAVSplitString(path, '/', node)
 
-    if (nodeCount <= 0) {
-        NAVErrorLog(NAV_LOG_LEVEL_ERROR, 'mLightwareLW3: Error Splitting Path')
-        return
-    }
-
     switch (property) {
         case 'SignalPresent': {
             stack_var integer inputIndex
+
+            if (nodeCount <= 0) {
+                NAVErrorLog(NAV_LOG_LEVEL_ERROR, 'mLightwareLW3: Error Splitting Path')
+                return
+            }
 
             inputIndex = atoi(NAVStripLeft(node[nodeCount], 1))
 
@@ -248,6 +248,11 @@ define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
         }
         case 'ConnectedSource': {
             stack_var integer outputIndex
+
+            if (nodeCount <= 0) {
+                NAVErrorLog(NAV_LOG_LEVEL_ERROR, 'mLightwareLW3: Error Splitting Path')
+                return
+            }
 
             outputIndex = atoi(NAVStripLeft(node[nodeCount], 1))
 
