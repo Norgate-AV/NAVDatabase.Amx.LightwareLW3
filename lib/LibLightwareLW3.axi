@@ -124,6 +124,16 @@ define_function char[NAV_MAX_BUFFER] BuildVideoSwitchCommand(integer input, inte
 }
 
 
+define_function char[NAV_MAX_BUFFER] BuildVideoOutputMuteCommand(integer state, integer output) {
+    return BuildProtocol(COMMAND_TYPE_SET, "'/V1/MEDIA/VIDEO/XP/O', itoa(output)", 'Mute', NAVBooleanToString(type_cast(state)))
+}
+
+
+define_function char[NAV_MAX_BUFFER] BuildVideoInputMuteCommand(integer state, integer input) {
+    return BuildProtocol(COMMAND_TYPE_SET, "'/V1/MEDIA/VIDEO/XP/I', itoa(input)", 'Mute', NAVBooleanToString(type_cast(state)))
+}
+
+
 define_function char[NAV_MAX_BUFFER] BuildAudioSwitchCommand(integer input, integer output) {
     return BuildProtocol(COMMAND_TYPE_CALL, '/V1/MEDIA/AUDIO/XP', 'switch', "'I', itoa(input), ':O', itoa(output)")
 }

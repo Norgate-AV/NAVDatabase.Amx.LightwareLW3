@@ -96,6 +96,20 @@ volatile integer inputSignalDetected[MAX_INPUTS] = {
 
 volatile integer volumePercent
 
+volatile integer inputMute[MAX_INPUTS] = {
+    false,
+    false,
+    false,
+    false
+}
+
+volatile integer outputMute[MAX_OUTPUTS] = {
+    false,
+    false,
+    false,
+    false
+}
+
 
 (***********************************************************)
 (*               LATCHING DEFINITIONS GO BELOW             *)
@@ -144,16 +158,16 @@ define_function Drive() {
             module.CommandBusy = true
 
             switch (z) {
-                case NAV_SWITCH_LEVEL_VID:
+                case NAV_SWITCH_LEVEL_VID: {
                     SendString(BuildVideoSwitchCommand(output[z][x], x))
-                    break
-                case NAV_SWITCH_LEVEL_AUD:
+                }
+                case NAV_SWITCH_LEVEL_AUD: {
                     SendString(BuildAudioSwitchCommand(output[z][x], x))
-                    break
-                case NAV_SWITCH_LEVEL_ALL:
+                }
+                case NAV_SWITCH_LEVEL_ALL: {
                     SendString(BuildVideoSwitchCommand(output[z][x], x))
                     SendString(BuildAudioSwitchCommand(output[z][x], x))
-                    break
+                }
             }
         }
     }
@@ -263,6 +277,25 @@ define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
         case 'VolumePercent': {
             volumePercent = atoi(NAVStripRight(remove_string(value, '.', 1), 1))
             send_level vdvObject, VOL_LVL, volumePercent * 255 / 100
+        }
+        case 'Mute': {
+            stack_var integer index
+
+            if (nodeCount <= 0) {
+                NAVErrorLog(NAV_LOG_LEVEL_ERROR, 'mLightwareLW3: Error Splitting Path')
+                return
+            }
+
+            switch (NAVCharCodeAt(node[nodeCount], 1)) {
+                case 'I': {
+                    index = atoi(NAVStripLeft(node[nodeCount], 1))
+                    inputMute[index] = NAVStringToBoolean(value)
+                }
+                case 'O': {
+                    index = atoi(NAVStripLeft(node[nodeCount], 1))
+                    outputMute[index] = NAVStringToBoolean(value)
+                }
+            }
         }
         case 'SerialNumber': {
             if (module.Device.IsInitialized) {
@@ -451,6 +484,18 @@ data_event[vdvObject] {
                     case 'OFF': { SendString(BuildVolumeMuteCommand(false, 2)) }
                 }
             }
+            case 'VIDEO_MUTE': {
+                switch (message.Parameter[1]) {
+                    case 'ON': {
+                        SendString(BuildVideoOutputMuteCommand(true, 1))
+                        SendString(BuildVideoOutputMuteCommand(true, 2))
+                    }
+                    case 'OFF': {
+                        SendString(BuildVideoOutputMuteCommand(false, 1))
+                        SendString(BuildVideoOutputMuteCommand(false, 2))
+                    }
+                }
+            }
         }
     }
 }
@@ -471,6 +516,7 @@ timeline_event[TL_NAV_FEEDBACK] {
     [vdvObject, NAV_IP_CONNECTED]	= (module.Device.SocketConnection.IsConnected)
     [vdvObject, DEVICE_COMMUNICATING] = (module.Device.IsCommunicating)
     [vdvObject, DATA_INITIALIZED] = (module.Device.IsInitialized)
+    [vdvObject, PIC_MUTE_FB] = (outputMute[1])
 
     {
         stack_var integer x
