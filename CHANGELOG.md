@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.1](https://github.com/Norgate-AV/NAVDatabase.Amx.LightwareLW3/compare/v1.2.0...v1.2.1) (2025-01-16)
+
+### 🐛 Bug Fixes
+
+- fix path update in install script ([4bbd6ba](https://github.com/Norgate-AV/NAVDatabase.Amx.LightwareLW3/commit/4bbd6bafb427b37762109de822da9551f5d17b79))
+
 ## [1.2.0](https://github.com/Norgate-AV/NAVDatabase.Amx.LightwareLW3/compare/v1.1.0...v1.2.0) (2025-01-16)
 
 ### 🌟 Features
