@@ -12,6 +12,8 @@ MODULE_NAME='mLightwareLW3'     (
 #include 'NAVFoundation.SocketUtils.axi'
 #include 'NAVFoundation.ArrayUtils.axi'
 #include 'NAVFoundation.StringUtils.axi'
+#include 'NAVFoundation.TimelineUtils.axi'
+#include 'NAVFoundation.ErrorLogUtils.axi'
 #include 'LibLightwareLW3.axi'
 
 /*
@@ -55,17 +57,13 @@ DEFINE_DEVICE
 (***********************************************************)
 DEFINE_CONSTANT
 
-constant char DELIMITER[] = "{ {NAV_CR}, {NAV_LF} }"
-
-constant integer IP_PORT = 6107
-
 constant long TL_DRIVE    = 1
-constant long TL_IP_CHECK = 2
+constant long TL_SOCKET_CHECK = 2
 constant long TL_HEARTBEAT = 3
 
-constant integer MAX_LEVELS = 3
-constant integer MAX_OUTPUTS = 4
-constant integer MAX_INPUTS = 4
+constant long TL_DRIVE_INTERVAL[] = { 200 }
+constant long TL_SOCKET_CHECK_INTERVAL[] = { 3000 }
+constant long TL_HEARTBEAT_INTERVAL[] = { 20000 }
 
 
 (***********************************************************)
@@ -78,16 +76,12 @@ DEFINE_TYPE
 (***********************************************************)
 DEFINE_VARIABLE
 
-volatile long driveTick[] = { 200 }
-volatile long ipCheck[] = { 3000 }
-volatile long heartbeat[] = { 20000 }
-
 volatile integer output[MAX_LEVELS][MAX_OUTPUTS]
-volatile integer outputPending[MAX_LEVELS][MAX_OUTPUTS]
+volatile char outputPending[MAX_LEVELS][MAX_OUTPUTS]
 
 volatile integer outputActual[MAX_LEVELS][MAX_OUTPUTS]
 
-volatile integer inputSignalDetected[MAX_INPUTS] = {
+volatile char inputSignalDetected[MAX_INPUTS] = {
     false,
     false,
     false,
@@ -96,14 +90,14 @@ volatile integer inputSignalDetected[MAX_INPUTS] = {
 
 volatile integer volumePercent
 
-volatile integer inputMute[MAX_INPUTS] = {
+volatile char inputMute[MAX_INPUTS] = {
     false,
     false,
     false,
     false
 }
 
-volatile integer outputMute[MAX_OUTPUTS] = {
+volatile char outputMute[MAX_OUTPUTS] = {
     false,
     false,
     false,
@@ -257,6 +251,7 @@ define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
 
             inputSignalDetected[inputIndex] = NAVStringToBoolean(value)
             NAVErrorLog(NAV_LOG_LEVEL_DEBUG, "'mLightwareLW3: Video Input ', itoa(inputIndex), ' SignalPresent: ', value")
+            UpdateFeedback()
 
             send_string vdvObject, "'INPUT_SIGNAL_DETECTED-', itoa(inputIndex), ',', NAVBooleanToString(type_cast(inputSignalDetected[inputIndex]))"
         }
@@ -290,10 +285,12 @@ define_function NAVStringGatherCallback(_NAVStringGatherResult args) {
                 case 'I': {
                     index = atoi(NAVStripLeft(node[nodeCount], 1))
                     inputMute[index] = NAVStringToBoolean(value)
+                    UpdateFeedback()
                 }
                 case 'O': {
                     index = atoi(NAVStripLeft(node[nodeCount], 1))
                     outputMute[index] = NAVStringToBoolean(value)
+                    UpdateFeedback()
                 }
             }
         }
@@ -326,6 +323,7 @@ define_function Init() {
     SendString(BuildGetVideoSignalPresenseCommand(4))
 
     module.Device.IsInitialized = true
+    UpdateFeedback()
 }
 
 
@@ -333,9 +331,11 @@ define_function CommunicationTimeOut(integer timeout) {
     cancel_wait 'TimeOut'
 
     module.Device.IsCommunicating = true
+    UpdateFeedback()
 
     wait (timeout * 10) 'TimeOut' {
         module.Device.IsCommunicating = false
+        UpdateFeedback()
     }
 }
 
@@ -344,6 +344,7 @@ define_function Reset() {
     module.Device.SocketConnection.IsConnected = false
     module.Device.IsCommunicating = false
     module.Device.IsInitialized = false
+    UpdateFeedback()
 
     NAVTimelineStop(TL_HEARTBEAT)
     NAVTimelineStop(TL_DRIVE)
@@ -355,7 +356,10 @@ define_function NAVModulePropertyEventCallback(_NAVModulePropertyEvent event) {
         case NAV_MODULE_PROPERTY_EVENT_IP_ADDRESS: {
             module.Device.SocketConnection.Address = event.Args[1]
             module.Device.SocketConnection.Port = IP_PORT
-            NAVTimelineStart(TL_IP_CHECK, ipCheck, TIMELINE_ABSOLUTE, TIMELINE_REPEAT)
+            NAVTimelineStart(TL_SOCKET_CHECK,
+                            TL_SOCKET_CHECK_INTERVAL,
+                            TIMELINE_ABSOLUTE,
+                            TIMELINE_REPEAT)
         }
     }
 }
@@ -367,6 +371,22 @@ define_function NAVModulePassthruEventCallback(_NAVModulePassthruEvent event) {
     }
 
     SendString(event.Payload)
+}
+
+
+define_function UpdateFeedback() {
+    [vdvObject, NAV_IP_CONNECTED]	= (module.Device.SocketConnection.IsConnected)
+    [vdvObject, DEVICE_COMMUNICATING] = (module.Device.IsCommunicating)
+    [vdvObject, DATA_INITIALIZED] = (module.Device.IsInitialized)
+    [vdvObject, PIC_MUTE_FB] = (outputMute[1])
+
+    {
+        stack_var integer x
+
+        for (x = 1; x <= MAX_INPUTS; x++) {
+            [vdvObject, NAV_INPUT_SIGNAL[x]] = (inputSignalDetected[x])
+        }
+    }
 }
 
 
@@ -394,12 +414,19 @@ data_event[dvPort] {
 
         if (data.device.number == 0) {
             module.Device.SocketConnection.IsConnected = true
+            UpdateFeedback()
         }
 
         SendString(BuildProtocol(COMMAND_TYPE_GET, '/', 'SerialNumber', ''))
 
-        NAVTimelineStart(TL_DRIVE, driveTick, TIMELINE_ABSOLUTE, TIMELINE_REPEAT)
-        NAVTimelineStart(TL_HEARTBEAT, heartbeat, TIMELINE_ABSOLUTE, TIMELINE_REPEAT)
+        NAVTimelineStart(TL_DRIVE,
+                        TL_DRIVE_INTERVAL,
+                        TIMELINE_ABSOLUTE,
+                        TIMELINE_REPEAT)
+        NAVTimelineStart(TL_HEARTBEAT,
+                        TL_HEARTBEAT_INTERVAL,
+                        TIMELINE_ABSOLUTE,
+                        TIMELINE_REPEAT)
     }
     offline: {
         if (data.device.number == 0) {
@@ -504,27 +531,11 @@ data_event[vdvObject] {
 timeline_event[TL_DRIVE] { Drive() }
 
 
-timeline_event[TL_IP_CHECK] { MaintainIpConnection() }
+timeline_event[TL_SOCKET_CHECK] { MaintainIpConnection() }
 
 
 timeline_event[TL_HEARTBEAT] {
     SendString(BuildProtocol(COMMAND_TYPE_GET, '/', 'SerialNumber', ''))
-}
-
-
-timeline_event[TL_NAV_FEEDBACK] {
-    [vdvObject, NAV_IP_CONNECTED]	= (module.Device.SocketConnection.IsConnected)
-    [vdvObject, DEVICE_COMMUNICATING] = (module.Device.IsCommunicating)
-    [vdvObject, DATA_INITIALIZED] = (module.Device.IsInitialized)
-    [vdvObject, PIC_MUTE_FB] = (outputMute[1])
-
-    {
-        stack_var integer x
-
-        for (x = 1; x <= MAX_INPUTS; x++) {
-            [vdvObject, NAV_INPUT_SIGNAL[x]] = (inputSignalDetected[x])
-        }
-    }
 }
 
 

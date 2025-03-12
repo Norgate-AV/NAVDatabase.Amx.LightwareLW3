@@ -40,6 +40,14 @@ SOFTWARE.
 
 DEFINE_CONSTANT
 
+constant char DELIMITER[] = { $0D, $0A }
+
+constant integer IP_PORT = 6107
+
+constant integer MAX_LEVELS = 3
+constant integer MAX_OUTPUTS = 4
+constant integer MAX_INPUTS = 4
+
 constant integer COMMAND_TYPE_GET = 1
 constant integer COMMAND_TYPE_SET = 2
 constant integer COMMAND_TYPE_CALL = 3
