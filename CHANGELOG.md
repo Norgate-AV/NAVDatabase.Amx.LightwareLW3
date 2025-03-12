@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.0](https://github.com/Norgate-AV/NAVDatabase.Amx.LightwareLW3/compare/v1.3.0...v1.4.0) (2025-03-12)
+
+### 🌟 Features
+
+- update to support NAVFoundation.Amx v2.0.0 ([1ac3d77](https://github.com/Norgate-AV/NAVDatabase.Amx.LightwareLW3/commit/1ac3d77680a9e2dc5b4e1b2cb8a73537db539095))
+
 ## [1.3.0](https://github.com/Norgate-AV/NAVDatabase.Amx.LightwareLW3/compare/v1.2.1...v1.3.0) (2025-02-17)
 
 ### 🌟 Features
