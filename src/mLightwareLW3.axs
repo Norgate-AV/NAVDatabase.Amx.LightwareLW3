@@ -76,6 +76,8 @@ DEFINE_TYPE
 (***********************************************************)
 DEFINE_VARIABLE
 
+volatile _NAVModule module
+
 volatile integer output[MAX_LEVELS][MAX_OUTPUTS]
 volatile char outputPending[MAX_LEVELS][MAX_OUTPUTS]
 
@@ -160,7 +162,7 @@ define_function Drive() {
                 }
                 case NAV_SWITCH_LEVEL_ALL: {
                     SendString(BuildVideoSwitchCommand(output[z][x], x))
-                    SendString(BuildAudioSwitchCommand(output[z][x], x))
+                    // SendString(BuildAudioSwitchCommand(output[z][x], x))
                 }
             }
         }
@@ -394,6 +396,7 @@ define_function UpdateFeedback() {
 (*                STARTUP CODE GOES BELOW                  *)
 (***********************************************************)
 DEFINE_START {
+    NAVModuleInit(module)
     create_buffer dvPort, module.RxBuffer.Data
 }
 
@@ -481,6 +484,7 @@ data_event[vdvObject] {
 
                 output[level][outputIndex] = atoi(message.Parameter[1])
                 outputPending[level][outputIndex] = true
+                Drive()
             }
             case NAV_MODULE_EVENT_VOLUME: {
                 switch (message.Parameter[1]) {
